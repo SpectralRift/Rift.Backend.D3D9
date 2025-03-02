@@ -11,6 +11,19 @@ namespace engine::backend::dx9 {
             m_ErrorBuffer->Release();
             m_ErrorBuffer = nullptr;
         }
+
+        if(m_CompiledShader) {
+            m_CompiledShader->Release();
+            m_CompiledShader = nullptr;
+        }
+
+        if(m_ShaderHandle) {
+            if (m_ShaderType == core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX) {
+                reinterpret_cast<IDirect3DVertexShader9 *>(m_ShaderHandle)->Release();
+            } else if (m_ShaderType == core::runtime::graphics::ShaderType::SHADER_TYPE_FRAGMENT) {
+                reinterpret_cast<IDirect3DPixelShader9 *>(m_ShaderHandle)->Release();
+            }
+        }
     }
 
     void DX9Shader::SetSource(std::string_view source, core::runtime::graphics::ShaderType type) {
@@ -36,18 +49,23 @@ namespace engine::backend::dx9 {
             return false;
         }
 
-        Destroy();
+        m_ShaderType = type;
+
+        // cleanup resources if compiled
+        if(IsCompiled()) {
+            Destroy();
+        }
 
         HRESULT hr;
 
-        if (m_ShaderType == core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX) {
+        if (type == core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX) {
             hr = m_Device->CreateVertexShader(
-                    static_cast<const DWORD *>(m_CompiledShader->GetBufferPointer()),
+                    reinterpret_cast<const DWORD*>(data.data()),
                     reinterpret_cast<IDirect3DVertexShader9 **>(&m_ShaderHandle)
             );
-        } else if (m_ShaderType == core::runtime::graphics::ShaderType::SHADER_TYPE_FRAGMENT) {
+        } else if (type == core::runtime::graphics::ShaderType::SHADER_TYPE_FRAGMENT) {
             hr = m_Device->CreatePixelShader(
-                    static_cast<const DWORD *>(m_CompiledShader->GetBufferPointer()),
+                    reinterpret_cast<const DWORD*>(data.data()),
                     reinterpret_cast<IDirect3DPixelShader9 **>(&m_ShaderHandle)
             );
         } else {
@@ -56,7 +74,7 @@ namespace engine::backend::dx9 {
         }
 
         if (FAILED(hr)) {
-            printf("DX9Shader: Failed to create shader object!\n");
+            printf("DX9Shader: Failed to create shader object! Error: 0x%X\n", hr);
             return false;
         }
 
@@ -67,7 +85,7 @@ namespace engine::backend::dx9 {
     std::span<unsigned char> DX9Shader::GetCompiledShader() {
         return {
             (unsigned char *) m_CompiledShader->GetBufferPointer(),
-            ((unsigned char *) m_CompiledShader->GetBufferPointer()) + m_CompiledShader->GetBufferSize()
+            m_CompiledShader->GetBufferSize()
         };
     }
 
@@ -75,6 +93,11 @@ namespace engine::backend::dx9 {
         if (m_SourceCode.empty()) {
             printf("DX9Shader: Source code is empty. Please call SetSource first.\n");
             return false;
+        }
+
+        // cleanup resources if it's already compiled
+        if(IsCompiled()) {
+            Destroy();
         }
 
         HRESULT hr = D3DXCompileShader(
@@ -112,6 +135,6 @@ namespace engine::backend::dx9 {
     }
 
     bool DX9Shader::IsCompiled() {
-        return m_CompiledShader != nullptr;
+        return m_ShaderHandle != nullptr;
     }
 }
