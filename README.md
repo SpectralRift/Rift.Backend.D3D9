@@ -1,6 +1,6 @@
 # D3D9 Graphical Backend Implementation
 
-This module provides essential rendering components for the **SpectralRift 1 Engine**, ensuring compatibility with DirectX 9. It is a close-to-finished implementation, featuring an issue related to rendering that will be fixed in a future update.
+This module provides essential rendering components for the **SpectralRift 1 Engine**, ensuring compatibility with DirectX 9.
 
 ## Features
 - **DirectX 9 Rendering Backend**: Provides core rendering functionality using DirectX 9.
@@ -16,7 +16,7 @@ This module provides essential rendering components for the **SpectralRift 1 Eng
 This module comes bundled with the SpectralRift Engine, allowing you to leverage the easiest way to ship different graphics backends with your applications.
 
 ## Known Issues
-- There is a rendering issue that will be fixed in a future update.
+- Texts may look blurry in some cases because of the different way of DirectX's rasterizer process.
 
 ## License
 This module is part of the SpectralRift Engine and follows its licensing terms.
