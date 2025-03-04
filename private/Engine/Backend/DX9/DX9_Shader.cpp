@@ -1,9 +1,12 @@
 #include <Engine/Backend/DX9/DX9_Shader.hpp>
+#include <Engine/Runtime/Logger.hpp>
 
 #include <d3d9.h>
 #include <d3dx9.h>
 
 namespace engine::backend::dx9 {
+    static runtime::Logger g_LoggerDX9Shader("D3D9Shader");
+
     void DX9Shader::Destroy() {
         if (m_ErrorBuffer) {
             m_ErrorBuffer->Release();
@@ -31,19 +34,17 @@ namespace engine::backend::dx9 {
 
     const char *DX9_GetProfile(core::runtime::graphics::ShaderType type) {
         switch (type) {
+            default:
             case core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX:
                 return "vs_3_0";
             case core::runtime::graphics::ShaderType::SHADER_TYPE_FRAGMENT:
                 return "ps_3_0";
-            default:
-                printf("DX9_GetProfile: Unknown shader type. Defaulting to 'vs_3_0'\n");
-                return "vs_3_0";
         }
     }
 
     bool DX9Shader::UseCompiledShader(const std::span<unsigned char> &data, core::runtime::graphics::ShaderType type) {
         if (data.empty()) {
-            printf("DX9Shader: Shader code is empty.\n");
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Shader code is empty.");
             return false;
         }
 
@@ -67,16 +68,16 @@ namespace engine::backend::dx9 {
                     reinterpret_cast<IDirect3DPixelShader9 **>(&m_ShaderHandle)
             );
         } else {
-            printf("DX9Shader: Unknown shader type!\n");
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Unknown shader type!");
             return false;
         }
 
         if (FAILED(hr)) {
-            printf("DX9Shader: Failed to create shader object! Error: 0x%X\n", hr);
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to create shader object! Error: 0x%X", hr);
             return false;
         }
 
-        printf("DX9Shader: Applied compiled shader!\n");
+        g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_DEBUG, "Successfully created shader object from compiled shader.");
         return true;
     }
 
@@ -89,7 +90,7 @@ namespace engine::backend::dx9 {
 
     bool DX9Shader::Compile() {
         if (m_SourceCode.empty()) {
-            printf("DX9Shader: Source code is empty. Please call SetSource first.\n");
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Source code is empty. Please call SetSource first.");
             return false;
         }
 
@@ -112,7 +113,8 @@ namespace engine::backend::dx9 {
         );
 
         if (FAILED(hr)) {
-            printf("DX9Shader: Failed to compile shader.\nReason: %s", GetCompileLog().c_str());
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to compile shader");
+            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "%s", GetCompileLog().c_str());
             return false;
         }
 

@@ -43,6 +43,7 @@ namespace engine::backend::dx9 {
         IDirect3DDevice9 *m_Device;
         IDirect3DVertexBuffer9 *m_VertexBuffer;
         size_t m_VertexCount;
+        size_t m_BufferCapacity;
         core::runtime::graphics::BufferUsageHint m_UsageHint;
         core::runtime::graphics::PrimitiveType m_PrimType;
     };

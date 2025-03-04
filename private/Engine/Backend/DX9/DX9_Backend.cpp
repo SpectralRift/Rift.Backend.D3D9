@@ -7,17 +7,18 @@
 #include <Engine/Backend/DX9/DX9_ShaderProgram.hpp>
 #include <Engine/Backend/DX9/DX9_VertexBuffer.hpp>
 #include <Engine/Backend/DX9/DX9_Texture.hpp>
+#include <Engine/Runtime/Logger.hpp>
 
 namespace engine::backend::dx9 {
+    static runtime::Logger g_LoggerDX9Backend("D3D9Backend");
+
     bool DX9Backend::Initialize() {
         if (!h_DX9Device) {
-            printf("DX9Backend: device is NULL during initialization.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "device is NULL during initialization.");
             return false;
         }
 
-
-
-        printf("DX9Backend: DX9 backend initialized!\n");
+        g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_INFO, "DX9 backend initialized!");
 
         return true;
     }
@@ -36,8 +37,7 @@ namespace engine::backend::dx9 {
 
     void DX9Backend::SetViewport(core::math::Vector2 pos, core::math::Vector2 size) {
         if (!h_DX9Device) {
-            printf("DX9Backend: Cannot set viewport, device is not initialized.\n");
-
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Cannot set viewport, device is not initialized.");
         }
 
         D3DVIEWPORT9 viewport = {};
@@ -50,14 +50,14 @@ namespace engine::backend::dx9 {
 
         HRESULT hr = h_DX9Device->SetViewport(&viewport);
         if (FAILED(hr)) {
-            printf("DX9Backend: Failed to set viewport.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Failed to set viewport! Error: 0x%08x", hr);
             return;
         }
     }
 
     void DX9Backend::SetScissor(core::math::Vector2 start, core::math::Vector2 size) {
         if (!h_DX9Device) {
-            printf("DX9Backend: Cannot set scissor, device is not initialized.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Cannot set scissor, device is not initialized.");
             return;
         }
 
@@ -69,14 +69,14 @@ namespace engine::backend::dx9 {
 
         HRESULT hr = h_DX9Device->SetScissorRect(&scissorRect);
         if (FAILED(hr)) {
-            printf("DX9Backend: Failed to set scissor rect.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Failed to set scissor rect.");
             return;
         }
     }
 
     void DX9Backend::Clear(core::runtime::graphics::Color color) {
         if (!h_DX9Device) {
-            printf("DX9Backend: Cannot clear, device is not initialized.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Cannot clear, device is not initialized.");
             return;
         }
 
@@ -91,31 +91,31 @@ namespace engine::backend::dx9 {
 
         // configure clockwise culling in order to allow stuff to render properly;
         h_DX9Device->GetRenderState(D3DRS_CULLMODE, &renderState);
-        if(renderState != D3DCULL_NONE) {
+        if (renderState != D3DCULL_NONE) {
             h_DX9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
         }
 
         // disable clipping
         h_DX9Device->GetRenderState(D3DRS_CLIPPING, &renderState);
-        if(renderState != FALSE) {
+        if (renderState != FALSE) {
             h_DX9Device->SetRenderState(D3DRS_CLIPPING, FALSE);
         }
 
         // disable lighting
         h_DX9Device->GetRenderState(D3DRS_LIGHTING, &renderState);
-        if(renderState != FALSE) {
+        if (renderState != FALSE) {
             h_DX9Device->SetRenderState(D3DRS_LIGHTING, FALSE);
         }
 
         // disable zbuffer
         h_DX9Device->GetRenderState(D3DRS_ZENABLE, &renderState);
-        if(renderState != FALSE) {
+        if (renderState != FALSE) {
             h_DX9Device->SetRenderState(D3DRS_ZENABLE, FALSE);
         }
 
         HRESULT hr = h_DX9Device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, dxColor, 1.0f, 0);
         if (FAILED(hr)) {
-            printf("DX9Backend: Failed to clear the render target.\n");
+            g_LoggerDX9Backend.Log(runtime::LOG_LEVEL_ERROR, "Failed to clear the render target.");
             return;
         }
     }
@@ -125,29 +125,29 @@ namespace engine::backend::dx9 {
 
         if (featuresMask & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST) {
             h_DX9Device->GetRenderState(D3DRS_SCISSORTESTENABLE, &renderState);
-            if(renderState != TRUE) {
+            if (renderState != TRUE) {
                 h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
             }
         }
 
         if (featuresMask & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING) {
             h_DX9Device->GetRenderState(D3DRS_ALPHABLENDENABLE, &renderState);
-            if(renderState != TRUE) {
+            if (renderState != TRUE) {
                 h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
             }
 
             h_DX9Device->GetRenderState(D3DRS_BLENDOP, &renderState);
-            if(renderState != D3DBLENDOP_ADD) {
+            if (renderState != D3DBLENDOP_ADD) {
                 h_DX9Device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
             }
 
             h_DX9Device->GetRenderState(D3DRS_SRCBLEND, &renderState);
-            if(renderState != D3DBLEND_SRCALPHA) {
+            if (renderState != D3DBLEND_SRCALPHA) {
                 h_DX9Device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
             }
 
             h_DX9Device->GetRenderState(D3DRS_DESTBLEND, &renderState);
-            if(renderState != D3DBLEND_INVSRCALPHA) {
+            if (renderState != D3DBLEND_INVSRCALPHA) {
                 h_DX9Device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
             }
         }
@@ -161,7 +161,7 @@ namespace engine::backend::dx9 {
         if ((featuresMask & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST) &&
             (m_ActiveFeatures & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST)) {
             h_DX9Device->GetRenderState(D3DRS_SCISSORTESTENABLE, &renderState);
-            if(renderState != FALSE) {
+            if (renderState != FALSE) {
                 h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
             }
         }
@@ -169,7 +169,7 @@ namespace engine::backend::dx9 {
         if ((featuresMask & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING) &&
             (m_ActiveFeatures & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING)) {
             h_DX9Device->GetRenderState(D3DRS_ALPHABLENDENABLE, &renderState);
-            if(renderState != FALSE) {
+            if (renderState != FALSE) {
                 h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
             }
         }

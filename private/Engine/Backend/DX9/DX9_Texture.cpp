@@ -1,17 +1,22 @@
 #include <Engine/Backend/DX9/DX9_Texture.hpp>
+#include <Engine/Runtime/Logger.hpp>
 
 #include <d3d9.h>
 #include <d3dx9.h>
-#include <d3dx9tex.h>
 
 namespace engine::backend::dx9 {
+    static runtime::Logger g_LoggerDX9Texture("D3D9Texture");
+
     bool DX9Texture::Create(const core::runtime::graphics::Bitmap &bitmap) {
+        g_LoggerDX9Texture.Log(runtime::LOG_LEVEL_DEBUG, "Creating texture %ix%i...", (unsigned int) bitmap.Size().x, (unsigned int) bitmap.Size().y);
+
         if (!m_Device || bitmap.GetPixels().empty()) {
             return false;
         }
 
         HRESULT hr = m_Device->CreateTexture(bitmap.Size().x, bitmap.Size().y, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_Texture, nullptr);
         if (FAILED(hr)) {
+            g_LoggerDX9Texture.Log(runtime::LOG_LEVEL_ERROR, "Failed to create texture. Error: 0x%08x", hr);
             return false;
         }
 
@@ -30,12 +35,19 @@ namespace engine::backend::dx9 {
             }
 
             m_Texture->UnlockRect(0);
+        } else {
+            g_LoggerDX9Texture.Log(runtime::LOG_LEVEL_ERROR, "Failed to upload texture data!");
+            return false;
         }
+
+        g_LoggerDX9Texture.Log(runtime::LOG_LEVEL_INFO, "Texture created and uploaded successfully!");
 
         return true;
     }
 
     void DX9Texture::Destroy() {
+        g_LoggerDX9Texture.Log(runtime::LOG_LEVEL_DEBUG, "Texture is being destroyed.");
+
         if (m_Texture) {
             m_Texture->Release();
             m_Texture = nullptr;

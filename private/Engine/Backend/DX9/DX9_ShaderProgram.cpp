@@ -1,14 +1,18 @@
 #include <Engine/Backend/DX9/DX9_ShaderProgram.hpp>
 #include <Engine/Backend/DX9/DX9_Shader.hpp>
-
+#include <Engine/Runtime/Logger.hpp>
 #include <Engine/Core/Runtime/Graphics/IShader.hpp>
 
 #include <d3d9.h>
 #include <d3dx9.h>
 
 namespace engine::backend::dx9 {
+    static runtime::Logger g_LoggerDX9ShaderProgram("D3D9ShaderProgram");
+
     bool DX9ShaderProgram::Link() {
         bool ret = true;
+
+        g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_DEBUG, "Linking shaders...");
 
         if (m_FragmentShader && !m_FragmentShader->IsCompiled()) {
             ret &= m_FragmentShader->Compile();
@@ -18,10 +22,18 @@ namespace engine::backend::dx9 {
             ret &= m_VertexShader->Compile();
         }
 
+        if(ret) {
+            g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_INFO, "Shader program linked successfully!");
+        } else {
+            g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_ERROR, "Failed to link shader program!");
+        }
+
         return ret;
     }
 
     void DX9ShaderProgram::Destroy() {
+        g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_DEBUG, "Shader program is being destroyed.");
+
         if (m_FragmentShader) {
             m_FragmentShader->Destroy();
             m_FragmentShader = nullptr;
@@ -52,7 +64,7 @@ namespace engine::backend::dx9 {
 
     void DX9ShaderProgram::AddShader(std::unique_ptr<core::runtime::graphics::IShader> shader) {
         if(shader == nullptr) {
-            printf("DX9ShaderProgram: failed to AddShader: shader = NULL!\n");
+            g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_ERROR, "failed to AddShader: shader = NULL!");
             return;
         }
 
@@ -65,10 +77,10 @@ namespace engine::backend::dx9 {
             } else if (dxShader->GetShaderType() == core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX) {
                 m_VertexShader = std::move(shader);
             } else {
-                printf("DX9ShaderProgram: Unknown shader type! It must be of SHADER_TYPE_VERTEX or SHADER_TYPE_FRAGMENT!\n");
+                g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_ERROR, "Unknown shader type!");
             };
         } else {
-            printf("DX9ShaderProgram: Unknown shader object! It must be of DX9Shader type!\n");
+            g_LoggerDX9ShaderProgram.Log(runtime::LOG_LEVEL_ERROR, "The shader object must be an instance of DX9Shader!");
         }
     }
 
