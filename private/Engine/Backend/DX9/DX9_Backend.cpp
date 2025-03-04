@@ -1,5 +1,3 @@
-#define D3D_DEBUG_INFO
-
 #include <d3d9.h>
 #include <stdexcept>
 #include <sstream>
@@ -16,6 +14,8 @@ namespace engine::backend::dx9 {
             printf("DX9Backend: device is NULL during initialization.\n");
             return false;
         }
+
+
 
         printf("DX9Backend: DX9 backend initialized!\n");
 
@@ -72,12 +72,6 @@ namespace engine::backend::dx9 {
             printf("DX9Backend: Failed to set scissor rect.\n");
             return;
         }
-
-        hr = h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-        if (FAILED(hr)) {
-            printf("DX9Backend: Failed to enable scissor test.\n");
-            return;
-        }
     }
 
     void DX9Backend::Clear(core::runtime::graphics::Color color) {
@@ -93,10 +87,33 @@ namespace engine::backend::dx9 {
                 color.b
         );
 
-//        h_DX9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-//        h_DX9Device->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
+        DWORD renderState;
 
-        HRESULT hr = h_DX9Device->Clear(0, nullptr, D3DCLEAR_TARGET, dxColor, 1.0f, 0);
+        // configure clockwise culling in order to allow stuff to render properly;
+        h_DX9Device->GetRenderState(D3DRS_CULLMODE, &renderState);
+        if(renderState != D3DCULL_NONE) {
+            h_DX9Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+        }
+
+        // disable clipping
+        h_DX9Device->GetRenderState(D3DRS_CLIPPING, &renderState);
+        if(renderState != FALSE) {
+            h_DX9Device->SetRenderState(D3DRS_CLIPPING, FALSE);
+        }
+
+        // disable lighting
+        h_DX9Device->GetRenderState(D3DRS_LIGHTING, &renderState);
+        if(renderState != FALSE) {
+            h_DX9Device->SetRenderState(D3DRS_LIGHTING, FALSE);
+        }
+
+        // disable zbuffer
+        h_DX9Device->GetRenderState(D3DRS_ZENABLE, &renderState);
+        if(renderState != FALSE) {
+            h_DX9Device->SetRenderState(D3DRS_ZENABLE, FALSE);
+        }
+
+        HRESULT hr = h_DX9Device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, dxColor, 1.0f, 0);
         if (FAILED(hr)) {
             printf("DX9Backend: Failed to clear the render target.\n");
             return;
@@ -104,31 +121,57 @@ namespace engine::backend::dx9 {
     }
 
     void DX9Backend::EnableFeatures(core::runtime::graphics::BackendFeature featuresMask) {
+        DWORD renderState;
+
         if (featuresMask & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST) {
-            h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+            h_DX9Device->GetRenderState(D3DRS_SCISSORTESTENABLE, &renderState);
+            if(renderState != TRUE) {
+                h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+            }
         }
 
         if (featuresMask & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING) {
-//            h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-//            h_DX9Device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-//            h_DX9Device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-//            h_DX9Device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-//            h_DX9Device->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-//            h_DX9Device->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
+            h_DX9Device->GetRenderState(D3DRS_ALPHABLENDENABLE, &renderState);
+            if(renderState != TRUE) {
+                h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+            }
+
+            h_DX9Device->GetRenderState(D3DRS_BLENDOP, &renderState);
+            if(renderState != D3DBLENDOP_ADD) {
+                h_DX9Device->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+            }
+
+            h_DX9Device->GetRenderState(D3DRS_SRCBLEND, &renderState);
+            if(renderState != D3DBLEND_SRCALPHA) {
+                h_DX9Device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+            }
+
+            h_DX9Device->GetRenderState(D3DRS_DESTBLEND, &renderState);
+            if(renderState != D3DBLEND_INVSRCALPHA) {
+                h_DX9Device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+            }
         }
 
         m_ActiveFeatures |= featuresMask;
     }
 
     void DX9Backend::DisableFeatures(core::runtime::graphics::BackendFeature featuresMask) {
+        DWORD renderState;
+
         if ((featuresMask & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST) &&
             (m_ActiveFeatures & core::runtime::graphics::BACKEND_FEATURE_SCISSOR_TEST)) {
-            h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
+            h_DX9Device->GetRenderState(D3DRS_SCISSORTESTENABLE, &renderState);
+            if(renderState != FALSE) {
+                h_DX9Device->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+            }
         }
 
         if ((featuresMask & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING) &&
             (m_ActiveFeatures & core::runtime::graphics::BACKEND_FEATURE_ALPHA_BLENDING)) {
-            h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+            h_DX9Device->GetRenderState(D3DRS_ALPHABLENDENABLE, &renderState);
+            if(renderState != FALSE) {
+                h_DX9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+            }
         }
 
         m_ActiveFeatures &= ~featuresMask;

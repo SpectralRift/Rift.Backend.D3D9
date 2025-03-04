@@ -1,7 +1,5 @@
 #include <Engine/Backend/DX9/DX9_VertexBuffer.hpp>
 
-#define D3D_DEBUG_INFO
-
 #include <d3d9.h>
 #include <d3dx9.h>
 
@@ -81,7 +79,7 @@ namespace engine::backend::dx9 {
             core::runtime::graphics::PrimitiveType type,
             core::runtime::graphics::BufferUsageHint usage
     ) {
-        if (m_VertexBuffer && m_VertexCount > data.size()) {
+        if (m_VertexBuffer && data.size() > m_VertexCount) {
             Destroy();
         }
 
@@ -89,15 +87,17 @@ namespace engine::backend::dx9 {
         m_PrimType = type;
         m_UsageHint = usage;
 
+        auto isDynamicUsage = usage == core::runtime::graphics::BufferUsageHint::BUFFER_USAGE_HINT_DYNAMIC || usage == core::runtime::graphics::BufferUsageHint::BUFFER_USAGE_HINT_STREAM;
+
         if (m_VertexCount == 0) return;
 
-        const size_t bufferSize = m_VertexCount * sizeof(core::runtime::graphics::Vertex);
+        const size_t bufferSize = data.size() * sizeof(core::runtime::graphics::Vertex);
         HRESULT hr;
 
         if (m_VertexBuffer == nullptr) {
             DWORD dxUsage = D3DUSAGE_WRITEONLY;
 
-            if(usage == core::runtime::graphics::BufferUsageHint::BUFFER_USAGE_HINT_DYNAMIC) {
+            if(isDynamicUsage) {
                 dxUsage |= D3DUSAGE_DYNAMIC;
             }
 
@@ -105,19 +105,20 @@ namespace engine::backend::dx9 {
                     bufferSize,
                     dxUsage,
                     0,
-                    D3DPOOL_MANAGED,
+                    D3DPOOL_DEFAULT,
                     &m_VertexBuffer,
                     nullptr
             );
 
             if (FAILED(hr)) {
+                printf("DX9VertexBuffer::Upload: Failed to create vertex buffer! Error: 0x%08x\n", hr);
                 m_VertexBuffer = nullptr;
                 return;
             }
         }
 
         core::runtime::graphics::Vertex *vertexData;
-        hr = m_VertexBuffer->Lock(0, bufferSize, reinterpret_cast<void **>(&vertexData), usage == core::runtime::graphics::BufferUsageHint::BUFFER_USAGE_HINT_DYNAMIC ? D3DLOCK_DISCARD : D3DLOCK_NOSYSLOCK);
+        hr = m_VertexBuffer->Lock(0, bufferSize, reinterpret_cast<void **>(&vertexData), D3DLOCK_DISCARD);
 
         if (SUCCEEDED(hr)) {
             memcpy(vertexData, data.data(), bufferSize);

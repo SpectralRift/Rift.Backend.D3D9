@@ -8,7 +8,12 @@ struct IDirect3DVertexBuffer9;
 
 namespace engine::backend::dx9 {
     struct DX9VertexBuffer : public core::runtime::graphics::IVertexBuffer {
-        DX9VertexBuffer(IDirect3DDevice9* device) : m_Device{device}, m_VertexBuffer{nullptr} {}
+        DX9VertexBuffer(IDirect3DDevice9 *device) :
+                m_Device{device},
+                m_VertexBuffer{nullptr},
+                m_VertexCount{0},
+                m_UsageHint{core::runtime::graphics::BufferUsageHint::BUFFER_USAGE_HINT_STATIC},
+                m_PrimType{core::runtime::graphics::PrimitiveType::PRIMITIVE_TYPE_TRIANGLES} {}
 
         bool Create() override;
 
@@ -31,11 +36,12 @@ namespace engine::backend::dx9 {
         core::runtime::graphics::PrimitiveType GetPrimitiveType() override;
 
         std::vector<core::runtime::graphics::Vertex> Download() override;
+
     protected:
         size_t GetPrimitiveCount() const;
 
-        IDirect3DDevice9* m_Device;
-        IDirect3DVertexBuffer9* m_VertexBuffer;
+        IDirect3DDevice9 *m_Device;
+        IDirect3DVertexBuffer9 *m_VertexBuffer;
         size_t m_VertexCount;
         core::runtime::graphics::BufferUsageHint m_UsageHint;
         core::runtime::graphics::PrimitiveType m_PrimType;

@@ -3,8 +3,6 @@
 
 #include <Engine/Core/Runtime/Graphics/IShader.hpp>
 
-#define D3D_DEBUG_INFO
-
 #include <d3d9.h>
 #include <d3dx9.h>
 
@@ -36,20 +34,20 @@ namespace engine::backend::dx9 {
     }
 
     void DX9ShaderProgram::Bind() {
-        if (m_FragmentShader && m_FragmentShader->IsCompiled()) {
-            auto fShader = dynamic_cast<DX9Shader*>(m_FragmentShader.get());
-            m_Device->SetPixelShader(reinterpret_cast<IDirect3DPixelShader9 *>(fShader->GetHandle()));
-        }
-
         if (m_VertexShader && m_VertexShader->IsCompiled()) {
             auto vShader = dynamic_cast<DX9Shader*>(m_VertexShader.get());
             m_Device->SetVertexShader(reinterpret_cast<IDirect3DVertexShader9 *>(vShader->GetHandle()));
         }
+
+        if (m_FragmentShader && m_FragmentShader->IsCompiled()) {
+            auto fShader = dynamic_cast<DX9Shader*>(m_FragmentShader.get());
+            m_Device->SetPixelShader(reinterpret_cast<IDirect3DPixelShader9 *>(fShader->GetHandle()));
+        }
     }
 
     void DX9ShaderProgram::Unbind() {
-        m_Device->SetPixelShader(nullptr);
         m_Device->SetVertexShader(nullptr);
+        m_Device->SetPixelShader(nullptr);
     }
 
     void DX9ShaderProgram::AddShader(std::unique_ptr<core::runtime::graphics::IShader> shader) {
@@ -75,17 +73,21 @@ namespace engine::backend::dx9 {
     }
 
     void DX9ShaderProgram::SetUniformMat4(std::string_view name, const glm::mat4 &mat) {
+        // check type and if it's compiled
         auto vShader = dynamic_cast<DX9Shader*>(m_VertexShader.get());
+        if (!vShader && !vShader->IsCompiled()) return;
 
+        // get uniform (also known as constant in DX world)
         D3DXHANDLE handle = vShader->GetConstantTable()->GetConstantByName(nullptr, name.data());
         if (!handle) return;
 
-        vShader->GetConstantTable()->SetMatrix(m_Device, handle,
-                                                      reinterpret_cast<const D3DXMATRIX *>(&mat[0][0]));
+        // set matrix value
+        vShader->GetConstantTable()->SetMatrix(m_Device, handle, (D3DXMATRIX*)&mat);
     }
 
     void DX9ShaderProgram::SetUniformI(std::string_view name, int val) {
         auto vShader = dynamic_cast<DX9Shader*>(m_VertexShader.get());
+        if (!vShader && !vShader->IsCompiled()) return;
 
         D3DXHANDLE handle = vShader->GetConstantTable()->GetConstantByName(nullptr, name.data());
         if (!handle) return;

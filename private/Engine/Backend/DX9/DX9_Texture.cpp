@@ -1,7 +1,5 @@
 #include <Engine/Backend/DX9/DX9_Texture.hpp>
 
-#define D3D_DEBUG_INFO
-
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <d3dx9tex.h>
@@ -12,8 +10,7 @@ namespace engine::backend::dx9 {
             return false;
         }
 
-        HRESULT hr = D3DXCreateTexture(m_Device, bitmap.Size().x, bitmap.Size().y, 1, 0, D3DFMT_A8R8G8B8,
-                                       D3DPOOL_MANAGED, &m_Texture);
+        HRESULT hr = m_Device->CreateTexture(bitmap.Size().x, bitmap.Size().y, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_Texture, nullptr);
         if (FAILED(hr)) {
             return false;
         }
@@ -28,7 +25,6 @@ namespace engine::backend::dx9 {
                 for (size_t x = 0; x < bitmap.Size().x; ++x) {
                     const auto &color = pixels[y * static_cast<size_t>(bitmap.Size().x) + x];
                     D3DCOLOR *pixel = reinterpret_cast<D3DCOLOR *>(lockedRect.pBits) + y * lockedRect.Pitch / 4 + x;
-
                     *pixel = D3DCOLOR_ARGB(color.a, color.r, color.g, color.b);
                 }
             }
@@ -64,6 +60,13 @@ namespace engine::backend::dx9 {
     void DX9Texture::Bind(int samplerSlot) {
         if (m_Device && m_Texture) {
             m_Device->SetTexture(samplerSlot, m_Texture);
+
+            m_Device->SetSamplerState(samplerSlot, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+            m_Device->SetSamplerState(samplerSlot, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+            m_Device->SetSamplerState(samplerSlot, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+            m_Device->SetSamplerState(samplerSlot, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+            m_Device->SetSamplerState(samplerSlot, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
         }
     }
 

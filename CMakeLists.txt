@@ -27,4 +27,9 @@ target_include_directories(
         PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/private" ${DX9_INCLUDE_DIRS}
 )
 
+target_compile_definitions(
+        Rift_Backend_DX9
+        PUBLIC D3D_DEBUG_INFO
+)
+
 target_link_libraries(Rift_Backend_DX9 RiftEngine_Core_Runtime ${DX9_LIBRARIES})
