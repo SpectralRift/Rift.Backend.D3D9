@@ -2,13 +2,13 @@
 
 #include <Engine/Core/Runtime/Graphics/IVertexBuffer.hpp>
 
-// forward definition of DX9 types
+// forward definition of D3D9 types
 struct IDirect3DDevice9;
 struct IDirect3DVertexBuffer9;
 
 namespace engine::backend::dx9 {
-    struct DX9VertexBuffer : public core::runtime::graphics::IVertexBuffer {
-        DX9VertexBuffer(IDirect3DDevice9 *device) :
+    struct D3D9VertexBuffer : public core::runtime::graphics::IVertexBuffer {
+        D3D9VertexBuffer(IDirect3DDevice9 *device) :
                 m_Device{device},
                 m_VertexBuffer{nullptr},
                 m_VertexCount{0},

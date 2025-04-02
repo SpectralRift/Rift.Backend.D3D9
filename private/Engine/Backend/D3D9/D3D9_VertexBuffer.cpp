@@ -1,11 +1,11 @@
-#include <Engine/Backend/DX9/DX9_VertexBuffer.hpp>
+#include <Engine/Backend/D3D9/D3D9_VertexBuffer.hpp>
 #include <Engine/Runtime/Logger.hpp>
 
 #include <d3d9.h>
 #include <d3dx9.h>
 
 namespace engine::backend::dx9 {
-    static D3DVERTEXELEMENT9 DX9_VertexDeclList[] = {
+    static D3DVERTEXELEMENT9 D3D9_VertexDeclList[] = {
             {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0}, // position
             {0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0}, // uv
             {0, 20, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL, 0},   // normal
@@ -13,11 +13,11 @@ namespace engine::backend::dx9 {
             D3DDECL_END()
     };
 
-    static IDirect3DVertexDeclaration9 *DX9_VertexDecl = nullptr;
+    static IDirect3DVertexDeclaration9 *D3D9_VertexDecl = nullptr;
 
-    static runtime::Logger g_LoggerDX9VertexBuffer("D3D9VertexBuffer");
+    static runtime::Logger g_LoggerD3D9VertexBuffer("D3D9VertexBuffer");
 
-    D3DPRIMITIVETYPE DX9_ConvertPrimitiveType(core::runtime::graphics::PrimitiveType type) {
+    D3DPRIMITIVETYPE D3D9_ConvertPrimitiveType(core::runtime::graphics::PrimitiveType type) {
         switch (type) {
             default:
             case core::runtime::graphics::PrimitiveType::PRIMITIVE_TYPE_TRIANGLES:
@@ -29,7 +29,7 @@ namespace engine::backend::dx9 {
         }
     }
 
-    size_t DX9VertexBuffer::GetPrimitiveCount() const {
+    size_t D3D9VertexBuffer::GetPrimitiveCount() const {
         switch (m_PrimType) {
             case core::runtime::graphics::PrimitiveType::PRIMITIVE_TYPE_TRIANGLES:
                 return m_VertexCount / 3;
@@ -42,18 +42,18 @@ namespace engine::backend::dx9 {
         }
     }
 
-    bool DX9VertexBuffer::Create() {
+    bool D3D9VertexBuffer::Create() {
         if (!m_Device) {
-            g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Device is NULL.");
+            g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Device is NULL.");
             return false;
         }
 
-        g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_INFO, "Vertex Buffer created.");
+        g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_INFO, "Vertex Buffer created.");
         return true;
     }
 
-    void DX9VertexBuffer::Destroy() {
-        g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_DEBUG, "This vertex buffer is being destroyed.");
+    void D3D9VertexBuffer::Destroy() {
+        g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_DEBUG, "This vertex buffer is being destroyed.");
 
         if (m_VertexBuffer) {
             m_VertexBuffer->Release();
@@ -63,39 +63,39 @@ namespace engine::backend::dx9 {
         m_BufferCapacity = 0;
     }
 
-    void DX9VertexBuffer::Bind() {
+    void D3D9VertexBuffer::Bind() {
 
     }
 
-    void DX9VertexBuffer::Unbind() {
+    void D3D9VertexBuffer::Unbind() {
         m_Device->SetStreamSource(0, nullptr, 0, 0);
     }
 
-    void DX9VertexBuffer::Draw() {
+    void D3D9VertexBuffer::Draw() {
         if (m_VertexBuffer && m_VertexCount > 0) {
             // set vertex format for DX
-            if (DX9_VertexDecl == nullptr) {
-                m_Device->CreateVertexDeclaration(DX9_VertexDeclList, &DX9_VertexDecl);
+            if (D3D9_VertexDecl == nullptr) {
+                m_Device->CreateVertexDeclaration(D3D9_VertexDeclList, &D3D9_VertexDecl);
             }
 
-            m_Device->SetVertexDeclaration(DX9_VertexDecl);
+            m_Device->SetVertexDeclaration(D3D9_VertexDecl);
             m_Device->SetStreamSource(0, m_VertexBuffer, 0, sizeof(core::runtime::graphics::Vertex));
 
-            HRESULT hr = m_Device->DrawPrimitive(DX9_ConvertPrimitiveType(m_PrimType), 0, GetPrimitiveCount());
+            HRESULT hr = m_Device->DrawPrimitive(D3D9_ConvertPrimitiveType(m_PrimType), 0, GetPrimitiveCount());
 
             if(FAILED(hr)) {
-                g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Failed to draw vertex buffer. Error: 0x%08x", hr);
+                g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Failed to draw vertex buffer. Error: 0x%08x", hr);
             }
         }
     }
 
-    void DX9VertexBuffer::Upload(
+    void D3D9VertexBuffer::Upload(
             const std::vector<core::runtime::graphics::Vertex> &data,
             core::runtime::graphics::PrimitiveType type,
             core::runtime::graphics::BufferUsageHint usage
     ) {
         if (m_VertexBuffer && data.size() > m_BufferCapacity) {
-            g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_WARNING, "New vertex data exceeds buffer capacity. The buffer will be recreated!");
+            g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_WARNING, "New vertex data exceeds buffer capacity. The buffer will be recreated!");
             Destroy();
         }
 
@@ -127,12 +127,12 @@ namespace engine::backend::dx9 {
             );
 
             if (FAILED(hr)) {
-                g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Failed to create vertex buffer! Error: 0x%08x", hr);
+                g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_ERROR, "Failed to create vertex buffer! Error: 0x%08x", hr);
                 m_VertexBuffer = nullptr;
                 return;
             } else {
                 m_BufferCapacity = data.size();
-                g_LoggerDX9VertexBuffer.Log(runtime::LOG_LEVEL_INFO, "Vertex buffer created successfully");
+                g_LoggerD3D9VertexBuffer.Log(runtime::LOG_LEVEL_INFO, "Vertex buffer created successfully");
             }
         }
 
@@ -145,15 +145,15 @@ namespace engine::backend::dx9 {
         }
     }
 
-    size_t DX9VertexBuffer::Size() {
+    size_t D3D9VertexBuffer::Size() {
         return m_VertexCount;
     }
 
-    core::runtime::graphics::PrimitiveType DX9VertexBuffer::GetPrimitiveType() {
+    core::runtime::graphics::PrimitiveType D3D9VertexBuffer::GetPrimitiveType() {
         return m_PrimType;
     }
 
-    std::vector<core::runtime::graphics::Vertex> DX9VertexBuffer::Download() {
+    std::vector<core::runtime::graphics::Vertex> D3D9VertexBuffer::Download() {
         std::vector<core::runtime::graphics::Vertex> result;
         if (!m_VertexBuffer || m_VertexCount == 0) return result;
 

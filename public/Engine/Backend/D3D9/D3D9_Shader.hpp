@@ -2,21 +2,21 @@
 
 #include <Engine/Core/Runtime/Graphics/IShader.hpp>
 
-// forward definition of DX9 types
+// forward definition of D3D9 types
 struct IDirect3DDevice9;
 struct ID3DXBuffer;
 struct ID3DXConstantTable;
 
 namespace engine::backend::dx9 {
-    struct DX9Shader : public core::runtime::graphics::IShader {
-        explicit DX9Shader(IDirect3DDevice9 *device) : m_Device(device),
+    struct D3D9Shader : public core::runtime::graphics::IShader {
+        explicit D3D9Shader(IDirect3DDevice9 *device) : m_Device(device),
                                               m_ShaderHandle(nullptr),
                                               m_CompiledShader(nullptr),
                                               m_ErrorBuffer(nullptr),
                                               m_ShaderType(core::runtime::graphics::ShaderType::SHADER_TYPE_UNKNOWN) {}
 
-        ~DX9Shader() {
-            printf("DX9Shader destructor!\n");
+        ~D3D9Shader() {
+            printf("D3D9Shader destructor!\n");
         }
 
         bool Compile() override;

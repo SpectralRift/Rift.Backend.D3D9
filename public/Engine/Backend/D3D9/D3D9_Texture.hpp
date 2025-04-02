@@ -2,13 +2,13 @@
 
 #include <Engine/Core/Runtime/Graphics/ITexture.hpp>
 
-// forward definition of DX9 types
+// forward definition of D3D9 types
 struct IDirect3DDevice9;
 struct IDirect3DTexture9;
 
 namespace engine::backend::dx9 {
-    struct DX9Texture : public core::runtime::graphics::ITexture {
-        DX9Texture(IDirect3DDevice9* device) : m_Device(device), m_Texture(nullptr) {}
+    struct D3D9Texture : public core::runtime::graphics::ITexture {
+        D3D9Texture(IDirect3DDevice9* device) : m_Device(device), m_Texture(nullptr) {}
 
         bool Create(const core::runtime::graphics::Bitmap& bitmap) override;
 

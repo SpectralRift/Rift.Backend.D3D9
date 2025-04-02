@@ -1,13 +1,13 @@
-#include <Engine/Backend/DX9/DX9_Shader.hpp>
+#include <Engine/Backend/D3D9/D3D9_Shader.hpp>
 #include <Engine/Runtime/Logger.hpp>
 
 #include <d3d9.h>
 #include <d3dx9.h>
 
 namespace engine::backend::dx9 {
-    static runtime::Logger g_LoggerDX9Shader("D3D9Shader");
+    static runtime::Logger g_LoggerD3D9Shader("D3D9Shader");
 
-    void DX9Shader::Destroy() {
+    void D3D9Shader::Destroy() {
         if (m_ErrorBuffer) {
             m_ErrorBuffer->Release();
             m_ErrorBuffer = nullptr;
@@ -27,12 +27,12 @@ namespace engine::backend::dx9 {
         }
     }
 
-    void DX9Shader::SetSource(std::string_view source, core::runtime::graphics::ShaderType type) {
+    void D3D9Shader::SetSource(std::string_view source, core::runtime::graphics::ShaderType type) {
         m_SourceCode = source;
         m_ShaderType = type;
     }
 
-    const char *DX9_GetProfile(core::runtime::graphics::ShaderType type) {
+    const char *D3D9_GetProfile(core::runtime::graphics::ShaderType type) {
         switch (type) {
             default:
             case core::runtime::graphics::ShaderType::SHADER_TYPE_VERTEX:
@@ -42,9 +42,9 @@ namespace engine::backend::dx9 {
         }
     }
 
-    bool DX9Shader::UseCompiledShader(const std::span<unsigned char> &data, core::runtime::graphics::ShaderType type) {
+    bool D3D9Shader::UseCompiledShader(const std::span<unsigned char> &data, core::runtime::graphics::ShaderType type) {
         if (data.empty()) {
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Shader code is empty.");
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "Shader code is empty.");
             return false;
         }
 
@@ -68,29 +68,29 @@ namespace engine::backend::dx9 {
                     reinterpret_cast<IDirect3DPixelShader9 **>(&m_ShaderHandle)
             );
         } else {
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Unknown shader type!");
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "Unknown shader type!");
             return false;
         }
 
         if (FAILED(hr)) {
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to create shader object! Error: 0x%X", hr);
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to create shader object! Error: 0x%X", hr);
             return false;
         }
 
-        g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_DEBUG, "Successfully created shader object from compiled shader.");
+        g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_DEBUG, "Successfully created shader object from compiled shader.");
         return true;
     }
 
-    std::span<unsigned char> DX9Shader::GetCompiledShader() {
+    std::span<unsigned char> D3D9Shader::GetCompiledShader() {
         return {
             (unsigned char *) m_CompiledShader->GetBufferPointer(),
             m_CompiledShader->GetBufferSize()
         };
     }
 
-    bool DX9Shader::Compile() {
+    bool D3D9Shader::Compile() {
         if (m_SourceCode.empty()) {
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Source code is empty. Please call SetSource first.");
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "Source code is empty. Please call SetSource first.");
             return false;
         }
 
@@ -105,7 +105,7 @@ namespace engine::backend::dx9 {
                 nullptr,
                 nullptr,
                 "main",
-                DX9_GetProfile(m_ShaderType),
+                D3D9_GetProfile(m_ShaderType),
                 0,
                 &m_CompiledShader,
                 &m_ErrorBuffer,
@@ -113,19 +113,19 @@ namespace engine::backend::dx9 {
         );
 
         if (FAILED(hr)) {
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to compile shader");
-            g_LoggerDX9Shader.Log(runtime::LOG_LEVEL_ERROR, "%s", GetCompileLog().c_str());
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "Failed to compile shader");
+            g_LoggerD3D9Shader.Log(runtime::LOG_LEVEL_ERROR, "%s", GetCompileLog().c_str());
             return false;
         }
 
         return UseCompiledShader(GetCompiledShader(), m_ShaderType);
     }
 
-    std::string DX9Shader::GetSource() {
+    std::string D3D9Shader::GetSource() {
         return m_SourceCode;
     }
 
-    std::string DX9Shader::GetCompileLog() {
+    std::string D3D9Shader::GetCompileLog() {
         if (m_ErrorBuffer && m_ErrorBuffer->GetBufferPointer()) {
             return {static_cast<const char *>(m_ErrorBuffer->GetBufferPointer()),
                     m_ErrorBuffer->GetBufferSize()};
@@ -134,7 +134,7 @@ namespace engine::backend::dx9 {
         return "";
     }
 
-    bool DX9Shader::IsCompiled() {
+    bool D3D9Shader::IsCompiled() {
         return m_ShaderHandle != nullptr;
     }
 }

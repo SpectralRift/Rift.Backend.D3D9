@@ -2,12 +2,12 @@
 
 #include <Engine/Core/Runtime/Graphics/IGraphicsBackend.hpp>
 
-// forward definition of DX9 types
+// forward definition of D3D9 types
 struct IDirect3DDevice9;
 
 namespace engine::backend::dx9 {
-    struct DX9Backend : public core::runtime::graphics::IGraphicsBackend {
-        DX9Backend(IDirect3DDevice9 *device) : h_DX9Device{device} {}
+    struct D3D9Backend : public core::runtime::graphics::IGraphicsBackend {
+        D3D9Backend(IDirect3DDevice9 *device) : h_D3D9Device{device} {}
 
         bool Initialize() override;
 
@@ -38,7 +38,7 @@ namespace engine::backend::dx9 {
         std::unique_ptr<core::runtime::graphics::ITexture> CreateTexture() override;
 
     protected:
-        IDirect3DDevice9 *h_DX9Device;
+        IDirect3DDevice9 *h_D3D9Device;
         uint32_t m_ActiveFeatures = 0;
     };
 }

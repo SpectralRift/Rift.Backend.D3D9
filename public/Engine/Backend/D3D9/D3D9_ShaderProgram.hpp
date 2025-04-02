@@ -3,12 +3,12 @@
 #include <Engine/Core/Runtime/Graphics/IShaderProgram.hpp>
 #include <Engine/Core/Runtime/Graphics/IShader.hpp>
 
-// forward definition of DX9 types
+// forward definition of D3D9 types
 struct IDirect3DDevice9;
 
 namespace engine::backend::dx9 {
-    struct DX9ShaderProgram : public core::runtime::graphics::IShaderProgram {
-        DX9ShaderProgram(IDirect3DDevice9 *device) : m_Device(device) {}
+    struct D3D9ShaderProgram : public core::runtime::graphics::IShaderProgram {
+        D3D9ShaderProgram(IDirect3DDevice9 *device) : m_Device(device) {}
 
         bool Link() override;
 
