@@ -181,6 +181,7 @@ namespace engine::backend::dx9 {
         return static_cast<core::runtime::graphics::BackendFeature>(m_ActiveFeatures);
     }
 
+    // ToDo: use a global D3D9 device context for the objects, and use this D3D9 device for rendering
     std::unique_ptr<core::runtime::graphics::IVertexBuffer> DX9Backend::CreateVertexBuffer() {
         return std::make_unique<DX9VertexBuffer>(h_DX9Device);
     }
