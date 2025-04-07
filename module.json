@@ -1,0 +1,20 @@
+{
+  "module": {
+    "name": "Rift.Backend.D3D9",
+    "category": "Graphical Backend",
+    "version": "0.0.1",
+    "author": "r0neko",
+    "description": "Direct3D 9 Graphical Backend",
+    "homepage": "https://github.com/SpectralRift/Rift.Backend.D3D9",
+    "type": "monolithic",
+    "cmakeProject": "Rift_Backend_D3D9"
+  },
+  "dependencies": [
+    "Rift.Platform.Desktop.Windows",
+    "Rift.Runtime.Logging",
+    "Rift.Core.Runtime"
+  ],
+  "supportedTargets": [
+    "win32"
+  ]
+}

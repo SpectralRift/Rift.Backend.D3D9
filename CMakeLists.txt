@@ -32,4 +32,6 @@ target_compile_definitions(
         PUBLIC D3D_DEBUG_INFO
 )
 
-target_link_libraries(Rift_Backend_D3D9 RiftEngine_Core_Runtime Rift_Runtime_Logging ${DX9_LIBRARIES})
+rift_resolve_module_libs("Rift.Core.Runtime;Rift.Runtime.Logging" RIFT_D3D9_DEPS)
+
+target_link_libraries(Rift_Backend_D3D9 ${RIFT_D3D9_DEPS} ${DX9_LIBRARIES})
